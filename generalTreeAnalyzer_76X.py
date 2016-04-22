@@ -352,7 +352,7 @@ bb1 = ROOT.TH1F("bb1", "After Trigger", 3, -0.5, 1.5)
 bb2 = ROOT.TH1F("bb2", "After jet cuts", 3, -0.5, 1.5)
 bb3 = ROOT.TH1F("bb3", "After Delta Eta cuts", 3, -0.5, 1.5)
 
-calib = ROOT.BTagCalibration("csvv1", "CSVv2_subjets.csv")
+calib = ROOT.BTagCalibration("csvv2","CSVv2_subjets.csv")
 reader = ROOT.BTagCalibrationReader(0, "central")  # 0 is for loose op
 reader.load(calib, 0, "lt")  # 0 is for b flavour, "comb" is the measurement type
 readerup = ROOT.BTagCalibrationReader(0, "up")  # 0 is for loose op
@@ -390,7 +390,7 @@ for i in range(num1, num2):
         genJetEta = treeMine.GenJet_eta
         genJetPhi = treeMine.GenJet_phi
         genJetMass = treeMine.GenJet_mass
-        
+        genJetPDGID = treeMine.GenJet_pdgId
 	fjUngroomedN = treeMine.nFatjetAK08ungroomed
         fjUngroomedPt = treeMine.FatjetAK08ungroomed_pt
 	fjUngroomedEta = treeMine.FatjetAK08ungroomed_eta
@@ -574,10 +574,12 @@ for i in range(num1, num2):
         #finding gen jets to match higgs jets
         if options.isMC:
             ujets = []
+            ujetsPDG = []
             for j in range(len(genJetPt)):
                 jettemp = ROOT.TLorentzVector()
                 jettemp.SetPtEtaPhiM(genJetPt[j], genJetEta[j], genJetPhi[j], genJetMass[j])
                 ujets.append(jettemp)
+                ujetsPDG.append(genJetPDGID[j])
 
             j1 = MatchCollection(ujets, jets[idxH1])
             j2 = MatchCollection2(ujets, jets[idxH2],j1)
@@ -641,9 +643,23 @@ for i in range(num1, num2):
         #finding gen jets for subjets
         if options.isMC:
             if len(jet1sjcsv) > 1:
-                sj1gen = MatchCollection(bjets, jet1sj[0])
-                sj2gen = MatchCollection2(bjets, jet1sj[1],sj1)
-                sj1flav = bjetsID[sj1gen] 
+                sj1gen = MatchCollection(ujets, jet1sj[0])
+                sj2gen = MatchCollection2(ujets, jet1sj[1],sj1gen)
+                if abs(ujetsPDG[sj1gen]) == 5:
+                    sj1flav = 0
+                elif abs(ujetsPDG[sj1gen]) == 4:
+                    sj1flav = 1
+                else:
+                    print "Error, PDG ID is " + str(ujetsPDG[sj1gen])
+                if abs(ujetsPDG[sj2gen]) == 5:
+                    sj2flav = 0
+                elif abs(ujetsPDG[sj2gen]) == 4:
+                    sj2flav = 1
+                else:
+                    print "Error, PDG ID is " + str(ujetsPDG[sj2gen])
+                sfsj1 = reader.eval(sj1flav, jet1sj[0].Eta(), jet1sj[0].Pt())  # jet flavor, eta, pt
+                sfsj2 = reader.eval(sj2flav, jet1sj[1].Eta(), jet1sj[1].Pt())
+                print "SF " + str(sfsj1) + " for flavor " + str(sj1flav) + " for eta " + str(jet1sj[0].Eta()) + " for pt " + str(jet1sj[0].Pt())
 
         #for min subjet csv
 #	for j in range(len(jet1sjcsv)):
