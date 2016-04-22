@@ -13,6 +13,7 @@ from DataFormats.FWLite import Events, Handle
 
 from array import *
 
+ROOT.gSystem.Load('libCondFormatsBTagObjects') 
 
 from optparse import OptionParser
 parser = OptionParser()
@@ -112,6 +113,42 @@ def MatchCollection2(Col, jet, index): #matches a jet to a jet in a different co
         dr = 0.4
 	for i in range(len(Col)):
             if i != index:
+                C = ROOT.TLorentzVector()
+                C.SetPtEtaPhiM( Col[i].Pt(), Col[i].Eta(), Col[i].Phi(), Col[i].M() )
+		dr = abs(jet.DeltaR(C))
+		if dr < 0.4 :
+			#print "WOOHOO MATCH with index " + str(j) + " with dr " + str(dr)
+			j = i
+                        break
+        if dr > 0.4:
+	#	print "No Match :( for dr: " + str(dr)
+#		print "index " + str(j)
+		return -1
+	return j
+
+def MatchCollection3(Col, jet, index1, index2): #matches a jet to a jet in a different collection
+	j = -1
+        dr = 0.4
+	for i in range(len(Col)):
+            if i != index1 and i != index2:
+                C = ROOT.TLorentzVector()
+                C.SetPtEtaPhiM( Col[i].Pt(), Col[i].Eta(), Col[i].Phi(), Col[i].M() )
+		dr = abs(jet.DeltaR(C))
+		if dr < 0.4 :
+			#print "WOOHOO MATCH with index " + str(j) + " with dr " + str(dr)
+			j = i
+                        break
+        if dr > 0.4:
+	#	print "No Match :( for dr: " + str(dr)
+#		print "index " + str(j)
+		return -1
+	return j
+
+def MatchCollection4(Col, jet, index1, index2, index3): #matches a jet to a jet in a different collection
+	j = -1
+        dr = 0.4
+	for i in range(len(Col)):
+            if i != index1 and i != index2 and i != index3:
                 C = ROOT.TLorentzVector()
                 C.SetPtEtaPhiM( Col[i].Pt(), Col[i].Eta(), Col[i].Phi(), Col[i].M() )
 		dr = abs(jet.DeltaR(C))
@@ -229,6 +266,9 @@ norm = array('f', [-100.0])
 evt = array('f', [-100.0])
 ht = array('f', [-100.0])
 xsec = array('f', [-100.0])
+sjSF = array('f', [-100.0])
+sjSFup = array('f', [-100.0])
+sjSFdown = array('f', [-100.0])
 
 #creating the tree branches we need
 myTree.Branch('jet1pt', jet1pt, 'jet1pt/F')
@@ -297,6 +337,10 @@ myTree.Branch('norm',norm,'norm/F')
 myTree.Branch('evt',evt,'evt/F')
 myTree.Branch('ht', ht, 'ht/F')
 myTree.Branch('xsec', xsec, 'xsec/F')
+myTree.Branch('sjSF', sjSF, 'sjSF/F')
+myTree.Branch('sjSFup', sjSFup, 'sjSFup/F')
+myTree.Branch('sjSFdown', sjSFdown, 'sjSFdown/F')
+
 
 files_list	= open_files( inputfile )
 #nevent = treeMine.GetEntries();
@@ -307,6 +351,14 @@ bb0 = ROOT.TH1F("bb0", "After Json", 3, -0.5, 1.5)
 bb1 = ROOT.TH1F("bb1", "After Trigger", 3, -0.5, 1.5)
 bb2 = ROOT.TH1F("bb2", "After jet cuts", 3, -0.5, 1.5)
 bb3 = ROOT.TH1F("bb3", "After Delta Eta cuts", 3, -0.5, 1.5)
+
+calib = ROOT.BTagCalibration("csvv1", "CSVv2_subjets.csv")
+reader = ROOT.BTagCalibrationReader(0, "central")  # 0 is for loose op
+reader.load(calib, 0, "lt")  # 0 is for b flavour, "comb" is the measurement type
+readerup = ROOT.BTagCalibrationReader(0, "up")  # 0 is for loose op
+readerup.load(calib, 0, "lt")  # 0 is for b flavour, "comb" is the measurement type
+readerdown = ROOT.BTagCalibrationReader(0, "down")  # 0 is for loose op
+readerdown.load(calib, 0, "lt")  # 0 is for b flavour, "comb" is the measurement type
 
 gSystem.Load("DrawFunctions_h.so")
 
@@ -338,6 +390,7 @@ for i in range(num1, num2):
         genJetEta = treeMine.GenJet_eta
         genJetPhi = treeMine.GenJet_phi
         genJetMass = treeMine.GenJet_mass
+        
 	fjUngroomedN = treeMine.nFatjetAK08ungroomed
         fjUngroomedPt = treeMine.FatjetAK08ungroomed_pt
 	fjUngroomedEta = treeMine.FatjetAK08ungroomed_eta
@@ -518,6 +571,29 @@ for i in range(num1, num2):
         jet1l2l3[0] = jet_23[idxH1]
         jet2l2l3[0] = jet_23[idxH2]
 
+        #finding gen jets to match higgs jets
+        if options.isMC:
+            ujets = []
+            for j in range(len(genJetPt)):
+                jettemp = ROOT.TLorentzVector()
+                jettemp.SetPtEtaPhiM(genJetPt[j], genJetEta[j], genJetPhi[j], genJetMass[j])
+                ujets.append(jettemp)
+
+            j1 = MatchCollection(ujets, jets[idxH1])
+            j2 = MatchCollection2(ujets, jets[idxH2],j1)
+           
+            #filling gen jet info
+            genJet1Pt[0] = ujets[j1].Pt()
+            genJet1Phi[0] = ujets[j1].Phi()
+            genJet1Eta[0] = ujets[j1].Eta()
+            genJet1Mass[0] = ujets[j1].M()
+            genJet1ID[0] = j1
+            genJet2Pt[0] = ujets[j2].Pt()
+            genJet2Phi[0] = ujets[j2].Phi()
+            genJet2Eta[0] = ujets[j2].Eta()
+            genJet2Mass[0] = ujets[j2].M()
+            genJet2ID[0] = j2
+
 	#filling min subjet csv
 	subjets = []
 	jet1sj = []
@@ -562,6 +638,13 @@ for i in range(num1, num2):
         elif len(jet2sjcsv) == 1:
             jet2s1csv[0] = jet2sjcsv[0]
 
+        #finding gen jets for subjets
+        if options.isMC:
+            if len(jet1sjcsv) > 1:
+                sj1gen = MatchCollection(bjets, jet1sj[0])
+                sj2gen = MatchCollection2(bjets, jet1sj[1],sj1)
+                sj1flav = bjetsID[sj1gen] 
+
         #for min subjet csv
 #	for j in range(len(jet1sjcsv)):
 #     	    if jet1sjcsv[j] < jet1mscsv[0]:
@@ -570,29 +653,6 @@ for i in range(num1, num2):
 #	    if jet2sjcsv[j] < jet2mscsv[0]:
 #		    jet2mscsv[0] = jet2sjcsv[j]
 	
-        #finding gen jets to match higgs jets
-        if options.isMC:
-            ujets = []
-            for j in range(len(genJetPt)):
-                jettemp = ROOT.TLorentzVector()
-                jettemp.SetPtEtaPhiM(genJetPt[j], genJetEta[j], genJetPhi[j], genJetMass[j])
-                ujets.append(jettemp)
-
-            j1 = MatchCollection(ujets, jets[idxH1])
-            j2 = MatchCollection2(ujets, jets[idxH2],j1)
-           
-            #filling gen jet info
-            genJet1Pt[0] = ujets[j1].Pt()
-            genJet1Phi[0] = ujets[j1].Phi()
-            genJet1Eta[0] = ujets[j1].Eta()
-            genJet1Mass[0] = ujets[j1].M()
-            genJet1ID[0] = j1
-            genJet2Pt[0] = ujets[j2].Pt()
-            genJet2Phi[0] = ujets[j2].Phi()
-            genJet2Eta[0] = ujets[j2].Eta()
-            genJet2Mass[0] = ujets[j2].M()
-            genJet2ID[0] = j2
-
 	#filling bbtag
 	jet1bbtag[0] = jet_bbtag[idxH1] 
 	jet2bbtag[0] = jet_bbtag[idxH2]
