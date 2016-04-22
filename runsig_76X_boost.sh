@@ -28,4 +28,8 @@ python generalTreeAnalyzer_76X.py --pathIn=/eos/uscms/store/group/lpchbb/HeppyNt
 python generalTreeAnalyzer_76X.py --pathIn=/eos/uscms/store/group/lpchbb/HeppyNtuples/V21/RadionTohhTohbbhbb_narrow_M-1600_13TeV-madgraph/VHBB_HEPPY_V21_RadionTohhTohbbhbb_narrow_M-1600_13TeV-madgraph__fall15MAv2-pu25ns15v1_76r2as_v12-v1/160408_145518/0000/ --outName=R_1600_76X_boost --trigger=False --jets=True --deta=True --isMC=True --xsec=1.0 --min=0 --max=1 --file=TxtFiles/R1600.txt &
 
 #R 3500
+<<<<<<< HEAD
 python generalTreeAnalyzer_76X.py --pathIn=/eos/uscms/store/group/lpchbb/HeppyNtuples/V21/RadionTohhTohbbhbb_narrow_M-3500_13TeV-madgraph/VHBB_HEPPY_V21_RadionTohhTohbbhbb_narrow_M-3500_13TeV-madgraph__fall15MAv2-pu25ns15v1_76r2as_v12-v1/160408_145901/0000/ --outName=R_3500_76X_boost --trigger=False --jets=True --deta=True --isMC=True  --xsec=1.0 --min=0 --max=1 --file=TxtFiles/R3500.txt &
+=======
+python generalTreeAnalyzer_76X.py --pathIn=/eos/uscms/store/group/lpchbb/HeppyNtuples/V21/RadionTohhTohbbhbb_narrow_M-3500_13TeV-madgraph/VHBB_HEPPY_V21_RadionTohhTohbbhbb_narrow_M-3500_13TeV-madgraph__fall15MAv2-pu25ns15v1_76r2as_v12-v1/160408_145901/0000/ --outName=R_3500_76X_boost --trigger=False --jets=True --deta=True --isMC=True  --xsec=1.0 --min=0 --max=1 --file=TxtFiles/R3500.txt &
+>>>>>>> 27c1a7e56ea9b1349e7a10b8a2f7d1479a2c8f09
