@@ -353,12 +353,12 @@ bb2 = ROOT.TH1F("bb2", "After jet cuts", 3, -0.5, 1.5)
 bb3 = ROOT.TH1F("bb3", "After Delta Eta cuts", 3, -0.5, 1.5)
 
 calib = ROOT.BTagCalibration("csvv2","CSVv2_subjets.csv")
-reader = ROOT.BTagCalibrationReader(0, "central")  # 0 is for loose op
-reader.load(calib, 0, "lt")  # 0 is for b flavour, "comb" is the measurement type
-readerup = ROOT.BTagCalibrationReader(0, "up")  # 0 is for loose op
-readerup.load(calib, 0, "lt")  # 0 is for b flavour, "comb" is the measurement type
-readerdown = ROOT.BTagCalibrationReader(0, "down")  # 0 is for loose op
-readerdown.load(calib, 0, "lt")  # 0 is for b flavour, "comb" is the measurement type
+reader = ROOT.BTagCalibrationReader(calib,0, "lt","central")  # 0 is for loose op
+#reader.load(calib, 0, "lt")  # 0 is for b flavour, "comb" is the measurement type
+readerup = ROOT.BTagCalibrationReader(calib, 0,"lt", "up")  # 0 is for loose op
+#readerup.load(calib, 0, "lt")  # 0 is for b flavour, "comb" is the measurement type
+readerdown = ROOT.BTagCalibrationReader(calib, 0,"lt", "down")  # 0 is for loose op
+#readerdown.load(calib, 0, "lt")  # 0 is for b flavour, "comb" is the measurement type
 
 gSystem.Load("DrawFunctions_h.so")
 
@@ -657,9 +657,9 @@ for i in range(num1, num2):
                     sj2flav = 1
                 else:
                     print "Error, PDG ID is " + str(ujetsPDG[sj2gen])
-                sfsj1 = reader.eval(sj1flav, jet1sj[0].Eta(), jet1sj[0].Pt())  # jet flavor, eta, pt
-                sfsj2 = reader.eval(sj2flav, jet1sj[1].Eta(), jet1sj[1].Pt())
-                print "SF " + str(sfsj1) + " for flavor " + str(sj1flav) + " for eta " + str(jet1sj[0].Eta()) + " for pt " + str(jet1sj[0].Pt())
+#                sfsj1 = reader.eval(sj1flav, jet1sj[0].Eta(), jet1sj[0].Pt())  # jet flavor, eta, pt
+#                sfsj2 = reader.eval(sj2flav, jet1sj[1].Eta(), jet1sj[1].Pt())
+#                print "SF " + str(sfsj1) + " for flavor " + str(sj1flav) + " for eta " + str(jet1sj[0].Eta()) + " for pt " + str(jet1sj[0].Pt())
 
         #for min subjet csv
 #	for j in range(len(jet1sjcsv)):
