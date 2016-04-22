@@ -44,6 +44,9 @@ parser.add_option("-d", "--deta", dest="deta",
 parser.add_option("-m", "--isMC", dest="isMC", 
 		  help="bool for is MC")
 
+parser.add_option("-x", "--xsec", dest="xsec", 
+		  help="cross section")
+
 
 (options, args) = parser.parse_args()
 
@@ -61,9 +64,13 @@ outputfilename = d1 + d2 + options.min + '.root'
 print outputfilename
 
 import copy
-#File_tr=ROOT.TFile.Open("trigger_objects.root", "R")
-#histo_efficiency=copy.copy(File_tr.Get("histo_efficiency"))
-#File_tr.Close()
+File_tr=ROOT.TFile.Open("trigger_objects.root", "R")
+histo_efficiency=copy.copy(File_tr.Get("histo_efficiency"))
+histo_efficiency_up=copy.copy(File_tr.Get("histo_efficiency_upper"))
+histo_efficiency_down=copy.copy(File_tr.Get("histo_efficiency_lower"))
+histo_efficiency_2up=copy.copy(File_tr.Get("histo_efficiency_upper_2sigma"))
+histo_efficiency_2down=copy.copy(File_tr.Get("histo_efficiency_lower_2sigma"))
+File_tr.Close()
 
 
 def trigger_function(histo_efficiency,htJet30=700):
@@ -162,16 +169,21 @@ jet2eta = array('f', [-100.0])
 etadiff = array('f', [-100.0])
 dijetmass = array('f', [-100.0])
 dijetmass_corr = array('f', [-100.0])
+dijetmass_corr_punc = array('f', [-100.0])
 jet1tau21 = array('f', [-100.0])
 jet2tau21 = array('f', [-100.0])
 jet1pmass = array('f', [-100.0])
 jet2pmass = array('f', [-100.0])
+jet1pmassunc = array('f', [-100.0])
+jet2pmassunc = array('f', [-100.0])
 #pjet1pmass = array('f', [-100.0])
 #pjet2pmass = array('f', [-100.0])
 jet1bbtag = array('f', [-100.0])
 jet2bbtag = array('f', [-100.0])
-jet1mscsv = array('f', [-100.0])
-jet2mscsv = array('f', [-100.0])
+jet1s1csv = array('f', [-100.0])
+jet2s1csv = array('f', [-100.0])
+jet1s2csv = array('f', [-100.0])
+jet2s2csv = array('f', [-100.0])
 triggerpassbb = array('f', [-100.0])
 triggerpasssj = array('f', [-100.0])
 nHiggsTags = array('f', [-100.0])
@@ -208,7 +220,15 @@ json = array('f', [-100.0])
 SF = array('f', [-100.0])
 SFup = array('f', [-100.0])
 SFdown = array('f', [-100.0])
-#trigWeight = array('f', [-100.0])
+trigWeight = array('f', [-100.0])
+trigWeightUp = array('f', [-100.0])
+trigWeightDown = array('f', [-100.0])
+trigWeight2Up = array('f', [-100.0])
+trigWeight2Down = array('f', [-100.0])
+norm = array('f', [-100.0])
+evt = array('f', [-100.0])
+ht = array('f', [-100.0])
+xsec = array('f', [-100.0])
 
 #creating the tree branches we need
 myTree.Branch('jet1pt', jet1pt, 'jet1pt/F')
@@ -218,14 +238,19 @@ myTree.Branch('jet2eta', jet2eta, 'jet2eta/F')
 myTree.Branch('etadiff', etadiff, 'etadiff/F')
 myTree.Branch('dijetmass', dijetmass, 'dijetmass/F')
 myTree.Branch('dijetmass_corr', dijetmass_corr, 'dijetmass_corr/F')
+myTree.Branch('dijetmass_corr_punc', dijetmass_corr_punc, 'dijetmass_corr_punc/F')
 myTree.Branch('jet1tau21', jet1tau21, 'jet1tau21/F')
 myTree.Branch('jet2tau21', jet2tau21, 'jet2tau21/F')
 myTree.Branch('jet1pmass', jet1pmass, 'jet1pmass/F')
 myTree.Branch('jet2pmass', jet2pmass, 'jet2pmass/F')
+myTree.Branch('jet1pmassunc', jet1pmassunc, 'jet1pmassunc/F')
+myTree.Branch('jet2pmassunc', jet2pmassunc, 'jet2pmassunc/F')
 myTree.Branch('jet1bbtag', jet1bbtag, 'jet1bbtag/F')
 myTree.Branch('jet2bbtag', jet2bbtag, 'jet2bbtag/F')
-myTree.Branch('jet1mscsv', jet1mscsv, 'jet1mscsv/F')
-myTree.Branch('jet2mscsv', jet2mscsv, 'jet2mscsv/F')
+myTree.Branch('jet1s1csv', jet1s1csv, 'jet1s1csv/F')
+myTree.Branch('jet2s1csv', jet2s1csv, 'jet2s1csv/F')
+myTree.Branch('jet1s2csv', jet1s2csv, 'jet1s2csv/F')
+myTree.Branch('jet2s2csv', jet2s2csv, 'jet2s2csv/F')
 myTree.Branch('nHiggsTags', nHiggsTags, 'nHiggsTags/F')
 myTree.Branch('triggerpassbb', triggerpassbb, 'triggerpassbb/F')
 myTree.Branch('triggerpasssj', triggerpasssj, 'triggerpasssj/F')
@@ -263,7 +288,16 @@ myTree.Branch('json', json, 'json/F')
 myTree.Branch('SF', SF, 'SF/F')
 myTree.Branch('SFup', SFup, 'SFup/F')
 myTree.Branch('SFdown', SFdown, 'SFdown/F')
-#myTree.Branch('trigWeight', trigWeight, 'trigWeight/F')
+myTree.Branch('trigWeight', trigWeight, 'trigWeight/F')
+myTree.Branch('trigWeightUp', trigWeightUp, 'trigWeightUp/F')
+myTree.Branch('trigWeightDown', trigWeightDown, 'trigWeightDown/F')
+myTree.Branch('trigWeight2Up', trigWeight2Up, 'trigWeight2Up/F')
+myTree.Branch('trigWeight2Down', trigWeight2Down, 'trigWeight2Down/F')
+myTree.Branch('norm',norm,'norm/F')
+myTree.Branch('evt',evt,'evt/F')
+myTree.Branch('ht', ht, 'ht/F')
+myTree.Branch('xsec', xsec, 'xsec/F')
+
 files_list	= open_files( inputfile )
 #nevent = treeMine.GetEntries();
 
@@ -285,6 +319,12 @@ for i in range(num1, num2):
     treeMine  = f1.Get('tree')
     nevent = treeMine.GetEntries();
 
+    #getting the norm
+    if options.isMC:
+        histo_weight=f1.Get("CountWeighted")
+        norm[0]=histo_weight.GetBinContent(1)
+    else:
+        norm[0] = 1
     #loop over events in file
     print "Start looping"
     for j in range(0,nevent):
@@ -309,6 +349,7 @@ for i in range(num1, num2):
 	fjUngroomedBbTag = treeMine.FatjetAK08ungroomed_bbtag
 	fjUngroomedJetID = treeMine.FatjetAK08ungroomed_id_Tight
 	fjUngroomedPrunedMass = treeMine.FatjetAK08ungroomed_mprunedcorr
+        fjUngroomedPrunedMass_Unc = treeMine.FatjetAK08ungroomed_mpruned
         if options.isMC:
             fjUngroomedFlavour = treeMine.FatjetAK08ungroomed_Flavour
             fjUngroomedBHadron = treeMine.FatjetAK08ungroomed_BhadronFlavour
@@ -337,10 +378,12 @@ for i in range(num1, num2):
         hltAK8PFHT700 = treeMine.HLT_BIT_HLT_AK8PFHT700_TrimR0p1PT0p03Mass50_v
         Data = treeMine.isData
         vType = treeMine.Vtype
+        EVT = treeMine.evt 
         if options.isMC:
             nTInt = treeMine.nTrueInt
         genTopPts = treeMine.GenTop_pt
         JSON = treeMine.json
+        
       
 	#saving whether an event passes desired trigger (bb = HT800 pass, sj = pass any of the five saved triggers
         matched = 0    
@@ -361,6 +404,18 @@ for i in range(num1, num2):
             matchedsj += 1
         triggerpasssj[0] = matchedsj
 
+        #trigger weights
+        hT = 0
+        for j in range(len(fjUngroomedPt)): 
+            if abs(fjUngroomedEta[j]) < 3 and fjUngroomedPt[j] > 40:
+                hT = hT + fjUngroomedPt[j]
+
+        ht[0] = hT 
+        trigWeight[0] = trigger_function(histo_efficiency, int(round(hT)))
+        trigWeightUp[0] = trigger_function(histo_efficiency_up, int(round(hT)))    
+        trigWeightDown[0] = trigger_function(histo_efficiency_down, int(round(hT)))    
+        trigWeight2Up[0] = trigger_function(histo_efficiency_2up, int(round(hT)))   
+        trigWeight2Down[0] = trigger_function(histo_efficiency_2down, int(round(hT)))                     
         #json for data
         bbj.Fill(triggerpassbb[0])
         if Data and treeMine.json_silver < 1:
@@ -378,6 +433,7 @@ for i in range(num1, num2):
 	jet_tau = []
 	jet_bbtag = []
         jet_pmass = []
+        jet_pmassunc = []
         jet_id = []
         jet_nb = []
         jet_nc = []
@@ -396,6 +452,7 @@ for i in range(num1, num2):
 			    jet_tau.append(100)
 		    jet_bbtag.append(fjUngroomedBbTag[j])	
                     jet_pmass.append(fjUngroomedPrunedMass[j])
+                    jet_pmassunc.append(fjUngroomedPrunedMass_Unc[j])
                     jet_id.append(fjUngroomedJetID[j])
                     if options.isMC:
                         jet_nb.append(fjUngroomedBHadron[j])
@@ -441,7 +498,9 @@ for i in range(num1, num2):
         #filling jet variables
         jet1pmass[0] = jet_pmass[idxH1]
         jet2pmass[0] = jet_pmass[idxH2]
-	jet1ID[0] = jet_id[idxH1]
+        jet1pmassunc[0] = jet_pmassunc[idxH1]
+        jet2pmassunc[0] = jet_pmassunc[idxH2]
+        jet1ID[0] = jet_id[idxH1]
 	jet2ID[0] = jet_id[idxH2]
 	jet1tau21[0] = jet_tau[idxH1]
         jet2tau21[0] = jet_tau[idxH2]
@@ -485,15 +544,31 @@ for i in range(num1, num2):
 	n1sj = len(jet1sj)
 	n2sj = len(jet2sj)
 
-	#Finding the subjet with the smallest csv in each jet min(subjet csv)
-	jet1mscsv[0] = 1000.
-	jet2mscsv[0] = 1000.
-	for j in range(len(jet1sjcsv)):
-     	    if jet1sjcsv[j] < jet1mscsv[0]:
-		    jet1mscsv[0] = jet1sjcsv[j]
-	for j in range(len(jet2sjcsv)):
-	    if jet2sjcsv[j] < jet2mscsv[0]:
-		    jet2mscsv[0] = jet2sjcsv[j]
+	#Finding the subjet csvs
+	jet1s1csv[0] = -1.
+	jet2s1csv[0] = -1.
+        jet1s2csv[0] = -1.
+	jet2s2csv[0] = -1.
+        
+        if len(jet1sjcsv) > 1:
+            jet1s1csv[0] = jet1sjcsv[0]
+            jet1s2csv[0] = jet1sjcsv[1]
+        elif len(jet1sjcsv) == 1:
+            jet1s1csv[0] = jet1sjcsv[0]
+
+        if len(jet2sjcsv) > 1:
+            jet2s1csv[0] = jet2sjcsv[0]
+            jet2s2csv[0] = jet2sjcsv[1]
+        elif len(jet2sjcsv) == 1:
+            jet2s1csv[0] = jet2sjcsv[0]
+
+        #for min subjet csv
+#	for j in range(len(jet1sjcsv)):
+#     	    if jet1sjcsv[j] < jet1mscsv[0]:
+#		    jet1mscsv[0] = jet1sjcsv[j]
+#	for j in range(len(jet2sjcsv)):
+#	    if jet2sjcsv[j] < jet2mscsv[0]:
+#		    jet2mscsv[0] = jet2sjcsv[j]
 	
         #finding gen jets to match higgs jets
         if options.isMC:
@@ -530,12 +605,15 @@ for i in range(num1, num2):
 	etadiff[0] = abs(jets[idxH1].Eta() - jets[idxH2].Eta())
 	dijetmass[0] = (jets[idxH1] + jets[idxH2]).M()
 	dijetmass_corr[0] = (jets[idxH1] + jets[idxH2]).M() - (jet1pmass[0]-125)-(jet2pmass[0]-125)
+        dijetmass_corr_punc[0] = (jets[idxH1] + jets[idxH2]).M() - (jet1pmassunc[0]-125)-(jet2pmassunc[0]-125)
         if options.isMC:
             puWeights[0]= puweight
             puWeightsUp[0] = puweightUp
             puWeightsDown[0] = puweightDown
             nTrueInt[0] = nTInt 
+            xsec[0] = float(options.xsec)
         json[0] = JSON
+        evt[0] = EVT
         vtype[0] = vType
         if Data:
             isData[0] = 1
@@ -594,8 +672,8 @@ for i in range(num1, num2):
 	jet2pmass[0] = -100.0
 	jet1tau21[0] = -100.0
 	jet2tau21[0] = -100.0
-	jet1mscsv[0] = -100.0
-	jet2mscsv[0] = -100.0
+#	jet1mscsv[0] = -100.0
+#	jet2mscsv[0] = -100.0
 	jet1bbtag[0] = -100.0
 	jet2bbtag[0] = -100.0
 	triggerpassbb[0] = -100.0
