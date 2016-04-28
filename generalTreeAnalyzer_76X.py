@@ -74,6 +74,10 @@ histo_efficiency_2down=copy.copy(File_tr.Get("histo_efficiency_lower_2sigma"))
 File_tr.Close()
 
 
+def btagging_efficiency_medium(pt):
+   result = 0.898 + 0.0002254*pt -1.74e-6*pt*pt +2.71e-9*pt*pt*pt -1.39e-12*pt*pt*pt*pt
+   return result	
+
 def trigger_function(histo_efficiency,htJet30=700):
     result = histo_efficiency.GetBinContent(htJet30)
     return result
@@ -930,52 +934,65 @@ for i in range(num1, num2):
         SFup[0] = sf1*(1+sf1change)*sf2*(1+sf2change)
         SFdown[0] = sf1*(1-sf1change)*sf2*(1-sf2change)
 
-	SF4sj[0] = sfsj1*sfsj2*sfsj3*sfsj4
-	SF4sjUp[0] = sfsj1up*sfsj2up*sfsj3up*sfsj4up 	
-	SF4sjDown[0] = sfsj1down*sfsj2down*sfsj3down*sfsj4down  
+	SF4sj[0] = -1
+	SF4sjUp[0] = -1
+	SF4sjDown[0] = -1	
+	if n1sj >1 and n2sj>1:
+	 SF4sj[0] = sfsj1*sfsj2*sfsj3*sfsj4
+	 SF4sjUp[0] = sfsj1up*sfsj2up*sfsj3up*sfsj4up 	
+	 SF4sjDown[0] = sfsj1down*sfsj2down*sfsj3down*sfsj4down  
 	
-	SF3sj[0] =1.
-	SF3sjUp[0] =1.
-	SF3sjDown[0] =1.
+	SF3sj[0] =-1.
+	SF3sjUp[0] =-1.
+	SF3sjDown[0] =-1.
 	#3b-tag category
 	#SF=[((1-SF1e1))/(1-e1)]*SF2*SF3*SF4
-	#e1 estimated in HH signal sample to be : 0.5+0.5*math.erf((pt-75.4)/20)*0.67
-	if not (jet1s1csv[0] >0.460 and jet2s1csv[0] >0.460  and jet1s2csv[0] >0.460 and jet2s2csv[0] > 0.460 ) :
+	#e1 estimated in HH signal sample to be 
+	if (jet1s1csv[0] >0.460 and jet2s1csv[0] >0.460  and jet1s2csv[0] >0.460 and jet2s2csv[0] < 0.460 ) or (jet1s1csv[0] >0.460 and jet2s1csv[0] >0.460  and jet1s2csv[0] <0.460 and jet2s2csv[0] > 0.460 ) or (jet1s1csv[0] >0.460 and jet2s1csv[0] <0.460  and jet1s2csv[0] >0.460 and jet2s2csv[0] > 0.460 ) or (jet1s1csv[0] <0.460 and jet2s1csv[0] > 0.460  and jet1s2csv[0] >0.460 and jet2s2csv[0] > 0.460 ):
+	 if n1sj >1 and n2sj>1:
 	  if(jet1s1csv[0] >0.460) :
             SF3sj[0] *= sfsj1
             SF3sjUp[0] *= sfsj1up
             SF3sjDown[0] *= sfsj1down
 	  else : 
-	    SF3sj[0] *= (1-sfsj1*(0.5+0.5*math.erf((jet1sj[0].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet1sj[0].Pt()-75.4)/20)*0.67)
-	    SF3sjUp[0] *= (1-sfsj1up*(0.5+0.5*math.erf((jet1sj[0].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet1sj[0].Pt()-75.4)/20)*0.67)
-	    SF3sjDown[0] *= (1-sfsj1down*(0.5+0.5*math.erf((jet1sj[0].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet1sj[0].Pt()-75.4)/20)*0.67)
+	    SF3sj[0] *= (1-sfsj1*btagging_efficiency_medium(jet1sj[0].Pt()))/(1-btagging_efficiency_medium(jet1sj[0].Pt()))
+	    if (1-sfsj1*btagging_efficiency_medium(jet1sj[0].Pt())) <0 :
+		print("%f  %f"%(sfsj1,btagging_efficiency_medium(jet1sj[0].Pt())))
+		print((1-sfsj1*btagging_efficiency_medium(jet1sj[0].Pt()))/(1-btagging_efficiency_medium(jet1sj[0].Pt()))) 
+            SF3sjUp[0] *= (1-sfsj1up*btagging_efficiency_medium(jet1sj[0].Pt()))/(1-btagging_efficiency_medium(jet1sj[0].Pt()))
+            SF3sjDown[0] *= (1-sfsj1down*btagging_efficiency_medium(jet1sj[0].Pt()))/(1-btagging_efficiency_medium(jet1sj[0].Pt()))
           if(jet1s2csv[0] >0.460) :
             SF3sj[0] *= sfsj2
             SF3sjUp[0] *= sfsj2up
             SF3sjDown[0] *= sfsj2down
-	  else :  
-            SF3sj[0] *= (1-sfsj2*(0.5+0.5*math.erf((jet1sj[1].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet1sj[1].Pt()-75.4)/20)*0.67)
-            SF3sjUp[0] *= (1-sfsj2up*(0.5+0.5*math.erf((jet1sj[1].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet1sj[1].Pt()-75.4)/20)*0.67)
-            SF3sjDown[0] *= (1-sfsj2down*(0.5+0.5*math.erf((jet1sj[1].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet1sj[1].Pt()-75.4)/20)*0.67)
+          else :
+            SF3sj[0] *= (1-sfsj2*btagging_efficiency_medium(jet1sj[1].Pt()))/(1-btagging_efficiency_medium(jet1sj[1].Pt()))
+            SF3sjUp[0] *= (1-sfsj2up*btagging_efficiency_medium(jet1sj[1].Pt()))/(1-btagging_efficiency_medium(jet1sj[1].Pt()))
+            SF3sjDown[0] *= (1-sfsj2down*btagging_efficiency_medium(jet1sj[1].Pt()))/(1-btagging_efficiency_medium(jet1sj[1].Pt()))
+	    if (1-sfsj2*btagging_efficiency_medium(jet1sj[1].Pt())) <0 :
+                print("%f  %f"%(sfsj2,btagging_efficiency_medium(jet1sj[1].Pt())))
+
           if(jet2s1csv[0] >0.460) :
             SF3sj[0] *= sfsj3
             SF3sjUp[0] *= sfsj3up
             SF3sjDown[0] *= sfsj3down
-	  else:
-            SF3sj[0] *= (1-sfsj3*(0.5+0.5*math.erf((jet2sj[0].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet2sj[0].Pt()-75.4)/20)*0.67)
-            SF3sjUp[0] *= (1-sfsj3up*(0.5+0.5*math.erf((jet2sj[0].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet2sj[0].Pt()-75.4)/20)*0.67)
-            SF3sjDown[0] *= (1-sfsj3down*(0.5+0.5*math.erf((jet2sj[0].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet2sj[0].Pt()-75.4)/20)*0.67)
+          else:
+            SF3sj[0] *= (1-sfsj3*btagging_efficiency_medium(jet2sj[0].Pt()))/(1-btagging_efficiency_medium(jet2sj[0].Pt()))
+            SF3sjUp[0] *= (1-sfsj3up*btagging_efficiency_medium(jet2sj[0].Pt()))/(1-btagging_efficiency_medium(jet2sj[0].Pt()))
+            SF3sjDown[0] *= (1-sfsj3down*btagging_efficiency_medium(jet2sj[0].Pt()))/(1-btagging_efficiency_medium(jet2sj[0].Pt()))
           if(jet2s2csv[0] >0.460) :
             SF3sj[0] *= sfsj4
             SF3sjUp[0] *= sfsj4up
-            SF3sjDown[0] *= sfsj4down	
-	  else:
-	    SF3sj[0] *= (1-sfsj4*(0.5+0.5*math.erf((jet2sj[1].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet2sj[1].Pt()-75.4)/20)*0.67)
-            SF3sjUp[0] *= (1-sfsj4up*(0.5+0.5*math.erf((jet2sj[1].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet2sj[1].Pt()-75.4)/20)*0.67)
-            SF3sjDown[0] *= (1-sfsj4down*(0.5+0.5*math.erf((jet2sj[1].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet2sj[1].Pt()-75.4)/20)*0.67)
-
-        
-    
+            SF3sjDown[0] *= sfsj4down
+          else:
+            SF3sj[0] *= (1-sfsj4*btagging_efficiency_medium(jet2sj[1].Pt()))/(1-btagging_efficiency_medium(jet2sj[1].Pt()))
+            SF3sjUp[0] *= (1-sfsj4up*btagging_efficiency_medium(jet2sj[1].Pt()))/(1-btagging_efficiency_medium(jet2sj[1].Pt()))
+            SF3sjDown[0] *= (1-sfsj4down*btagging_efficiency_medium(jet2sj[1].Pt()))/(1-btagging_efficiency_medium(jet2sj[1].Pt()))
+	
+	if SF3sj[0] <0. : SF3sj[0] = -SF3sj[0]
+	if SF3sjUp[0] <0. : SF3sjUp[0] = -SF3sjUp[0]
+	if SF3sjDown[0] <0. : SF3sjDown[0] = -SF3sjDown[0]	
+  
 	#filling the tree
         myTree.Fill()
 
