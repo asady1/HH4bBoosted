@@ -694,28 +694,24 @@ for i in range(num1, num2):
                 sj2gen = MatchCollection2(ujets, jet1sj[1],sj1gen)
 		isL = False
 		isL2 = False
-		if sj1gen < 0 : 
-			continue
-                if  ujetsBH[sj1gen]>0 :
+                if sj1gen>0 and ujetsBH[sj1gen]>0 :
                     sj1flav = BTagEntry.FLAV_B
 		    jetSJfla[0] = 1
 		    jetSJpt[0] = jet1sj[0].Pt()
         	    jetSJcsv[0] = jet1sjcsv[0]
                     jetSJeta[0] = jet1sj[0].Eta()
-                elif ujetsCH[sj1gen]>0:
+                elif ujetsCH[sj1gen]>0 and sj1gen>0:
                     sj1flav = BTagEntry.FLAV_C
                 else:
 		    isL= True 
 		    sj1flav = BTagEntry.FLAV_UDSG	
-		if sj2gen < 0 :
-                        continue
-                if  ujetsBH[sj2gen]>0 :
+                if  ujetsBH[sj2gen]>0 and sj2gen>0:
                     sj2flav = BTagEntry.FLAV_B
 		    jetSJpt[1] = jet1sj[1].Pt()
            	    jetSJeta[1] = jet1sj[1].Eta()
                     jetSJcsv[1] = jet1sjcsv[1]
 		    jetSJfla[1] = 1
-                elif ujetsCH[sj2gen]>0:
+                elif ujetsCH[sj2gen]>0 and sj2gen>0:
                     sj2flav = BTagEntry.FLAV_C
                 else:
 		    sj2flav = BTagEntry.FLAV_UDSG
@@ -780,28 +776,24 @@ for i in range(num1, num2):
                 sj4gen = MatchCollection2(ujets, jet2sj[1],sj3gen)
 		isL = False
                 isL2 = False
-                if sj3gen < 0 :
-                        continue
-                if  ujetsBH[sj3gen]>0 :
+                if  ujetsBH[sj3gen]>0 and sj3gen>0.:
                     sj3flav = BTagEntry.FLAV_B
 		    jetSJpt[2] = jet2sj[0].Pt()
                     jetSJeta[2] = jet2sj[0].Eta()
                     jetSJcsv[2] = jet2sjcsv[0]
 		    jetSJfla[2] = 1
-                elif ujetsCH[sj3gen]>0:
+                elif ujetsCH[sj3gen]>0 and sj3gen>0.:
                     sj3flav = BTagEntry.FLAV_C
                 else:
                     sj3flav = BTagEntry.FLAV_UDSG
 	 	    isL = True
-                if sj4gen < 0 :
-                        continue
-                if  ujetsBH[sj4gen]>0 :
+                if  ujetsBH[sj4gen]>0 and sj4gen>0.:
                     sj4flav = BTagEntry.FLAV_B
 		    jetSJpt[3] = jet2sj[1].Pt()
                     jetSJeta[3] = jet2sj[1].Eta()
                     jetSJcsv[3] = jet2sjcsv[1]
                     jetSJfla[3] = 1
-                elif ujetsCH[sj4gen]>0:
+                elif ujetsCH[sj4gen]>0 and sj4gen>0.:
                     sj4flav = BTagEntry.FLAV_C
                 else:
                     sj4flav = BTagEntry.FLAV_UDSG
