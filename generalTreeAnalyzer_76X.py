@@ -221,6 +221,10 @@ jet1s1csv = array('f', [-100.0])
 jet2s1csv = array('f', [-100.0])
 jet1s2csv = array('f', [-100.0])
 jet2s2csv = array('f', [-100.0])
+jetSJfla = array('f', [-100.0]*4)
+jetSJpt =  array('f', [-100.0]*4)
+jetSJcsv = array('f', [-100.0]*4)
+jetSJeta = array('f', [-100.0]*4)
 triggerpassbb = array('f', [-100.0])
 triggerpasssj = array('f', [-100.0])
 nHiggsTags = array('f', [-100.0])
@@ -352,7 +356,10 @@ myTree.Branch('xsec', xsec, 'xsec/F')
 myTree.Branch('sjSF', sjSF, 'sjSF/F')
 myTree.Branch('sjSFup', sjSFup, 'sjSFup/F')
 myTree.Branch('sjSFdown', sjSFdown, 'sjSFdown/F')
-
+myTree.Branch('jetSJfla',jetSJfla,'jetSJfla[4]/F') 
+myTree.Branch('jetSJpt', jetSJpt,'jetSJpt[4]/F')
+myTree.Branch('jetSJcsv',jetSJcsv,'jetSJcsv[4]/F')
+myTree.Branch('jetSJeta',jetSJeta,'jetSJeta[4]/F')
 
 files_list	= open_files( inputfile )
 #nevent = treeMine.GetEntries();
@@ -645,6 +652,13 @@ for i in range(num1, num2):
 	jet2s1csv[0] = -1.
         jet1s2csv[0] = -1.
 	jet2s2csv[0] = -1.
+	
+	for i in range(0,4):
+	  jetSJfla[i] =-1
+	  jetSJpt[i]  =-1
+	  jetSJcsv[i] =-1
+	  jetSJeta[i] =-1
+
         
         if len(jet1sjcsv) > 1:
             jet1s1csv[0] = jet1sjcsv[0]
@@ -657,7 +671,18 @@ for i in range(num1, num2):
             jet2s2csv[0] = jet2sjcsv[1]
         elif len(jet2sjcsv) == 1:
             jet2s1csv[0] = jet2sjcsv[0]
-
+        sfsj3 =-1
+        sfsj4 =-1
+	sfsj1 =-1
+        sfsj2 =-1	
+	sfsj3up =-1
+        sfsj4up =-1
+        sfsj1up =-1
+        sfsj2up =-1
+	sfsj3down =-1
+        sfsj4down =-1
+        sfsj1down =-1
+        sfsj2down =-1
         #finding gen jets for subjets
         if options.isMC:
             if len(jet1sjcsv) > 1:
@@ -669,6 +694,10 @@ for i in range(num1, num2):
 			continue
                 if  ujetsBH[sj1gen]>0 :
                     sj1flav = BTagEntry.FLAV_B
+		    jetSJfla[0] = 1
+		    jetSJpt[0] = jet1sj[0].Pt()
+        	    jetSJcsv[0] = jet1sjcsv[0]
+                    jetSJeta[0] = jet1sj[0].Eta()
                 elif ujetsCH[sj1gen]>0:
                     sj1flav = BTagEntry.FLAV_C
                 else:
@@ -678,6 +707,10 @@ for i in range(num1, num2):
                         continue
                 if  ujetsBH[sj2gen]>0 :
                     sj2flav = BTagEntry.FLAV_B
+		    jetSJpt[1] = jet1sj[1].Pt()
+           	    jetSJeta[1] = jet1sj[1].Eta()
+                    jetSJcsv[1] = jet1sjcsv[1]
+		    jetSJfla[1] = 1
                 elif ujetsCH[sj2gen]>0:
                     sj2flav = BTagEntry.FLAV_C
                 else:
@@ -747,6 +780,10 @@ for i in range(num1, num2):
                         continue
                 if  ujetsBH[sj3gen]>0 :
                     sj3flav = BTagEntry.FLAV_B
+		    jetSJpt[2] = jet2sj[0].Pt()
+                    jetSJeta[2] = jet2sj[0].Eta()
+                    jetSJcsv[2] = jet2sjcsv[0]
+		    jetSJfla[2] = 1
                 elif ujetsCH[sj3gen]>0:
                     sj3flav = BTagEntry.FLAV_C
                 else:
@@ -756,6 +793,10 @@ for i in range(num1, num2):
                         continue
                 if  ujetsBH[sj4gen]>0 :
                     sj4flav = BTagEntry.FLAV_B
+		    jetSJpt[3] = jet2sj[1].Pt()
+                    jetSJeta[3] = jet2sj[1].Eta()
+                    jetSJcsv[3] = jet2sjcsv[1]
+                    jetSJfla[3] = 1
                 elif ujetsCH[sj4gen]>0:
                     sj4flav = BTagEntry.FLAV_C
                 else:
@@ -896,23 +937,43 @@ for i in range(num1, num2):
 	SF3sj[0] =1.
 	SF3sjUp[0] =1.
 	SF3sjDown[0] =1.
+	#3b-tag category
+	#SF=[((1-SF1e1))/(1-e1)]*SF2*SF3*SF4
+	#e1 estimated in HH signal sample to be : 0.5+0.5*math.erf((pt-75.4)/20)*0.67
 	if not (jet1s1csv[0] >0.460 and jet2s1csv[0] >0.460  and jet1s2csv[0] >0.460 and jet2s2csv[0] > 0.460 ) :
 	  if(jet1s1csv[0] >0.460) :
             SF3sj[0] *= sfsj1
             SF3sjUp[0] *= sfsj1up
             SF3sjDown[0] *= sfsj1down
+	  else : 
+	    SF3sj[0] *= (1-sfsj1*(0.5+0.5*math.erf((jet1sj[0].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet1sj[0].Pt()-75.4)/20)*0.67)
+	    SF3sjUp[0] *= (1-sfsj1up*(0.5+0.5*math.erf((jet1sj[0].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet1sj[0].Pt()-75.4)/20)*0.67)
+	    SF3sjDown[0] *= (1-sfsj1down*(0.5+0.5*math.erf((jet1sj[0].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet1sj[0].Pt()-75.4)/20)*0.67)
           if(jet1s2csv[0] >0.460) :
             SF3sj[0] *= sfsj2
             SF3sjUp[0] *= sfsj2up
             SF3sjDown[0] *= sfsj2down
+	  else :  
+            SF3sj[0] *= (1-sfsj2*(0.5+0.5*math.erf((jet1sj[1].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet1sj[1].Pt()-75.4)/20)*0.67)
+            SF3sjUp[0] *= (1-sfsj2up*(0.5+0.5*math.erf((jet1sj[1].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet1sj[1].Pt()-75.4)/20)*0.67)
+            SF3sjDown[0] *= (1-sfsj2down*(0.5+0.5*math.erf((jet1sj[1].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet1sj[1].Pt()-75.4)/20)*0.67)
           if(jet2s1csv[0] >0.460) :
             SF3sj[0] *= sfsj3
             SF3sjUp[0] *= sfsj3up
             SF3sjDown[0] *= sfsj3down
+	  else:
+            SF3sj[0] *= (1-sfsj3*(0.5+0.5*math.erf((jet2sj[0].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet2sj[0].Pt()-75.4)/20)*0.67)
+            SF3sjUp[0] *= (1-sfsj3up*(0.5+0.5*math.erf((jet2sj[0].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet2sj[0].Pt()-75.4)/20)*0.67)
+            SF3sjDown[0] *= (1-sfsj3down*(0.5+0.5*math.erf((jet2sj[0].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet2sj[0].Pt()-75.4)/20)*0.67)
           if(jet2s2csv[0] >0.460) :
             SF3sj[0] *= sfsj4
             SF3sjUp[0] *= sfsj4up
             SF3sjDown[0] *= sfsj4down	
+	  else:
+	    SF3sj[0] *= (1-sfsj4*(0.5+0.5*math.erf((jet2sj[1].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet2sj[1].Pt()-75.4)/20)*0.67)
+            SF3sjUp[0] *= (1-sfsj4up*(0.5+0.5*math.erf((jet2sj[1].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet2sj[1].Pt()-75.4)/20)*0.67)
+            SF3sjDown[0] *= (1-sfsj4down*(0.5+0.5*math.erf((jet2sj[1].Pt()-75.4)/20)*0.67))(1-0.5+0.5*math.erf((jet2sj[1].Pt()-75.4)/20)*0.67)
+
         
     
 	#filling the tree
