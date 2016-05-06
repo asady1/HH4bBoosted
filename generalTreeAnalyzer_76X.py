@@ -48,6 +48,9 @@ parser.add_option("-m", "--isMC", dest="isMC",
 parser.add_option("-x", "--xsec", dest="xsec", 
 		  help="cross section")
 
+parser.add_option("-S", "--syst", dest="syst",
+                  help="Systematic")
+
 
 (options, args) = parser.parse_args()
 
@@ -60,7 +63,8 @@ num2 = int(options.max)
 
 d1 = options.outName 
 d2 = '_'
-outputfilename = d1 + d2 + options.min + '.root'
+print(options.outName)
+outputfilename = d1 + d2 + options.syst + '.root'
 
 print outputfilename
 
@@ -72,6 +76,13 @@ histo_efficiency_down=copy.copy(File_tr.Get("histo_efficiency_lower"))
 histo_efficiency_2up=copy.copy(File_tr.Get("histo_efficiency_upper_2sigma"))
 histo_efficiency_2down=copy.copy(File_tr.Get("histo_efficiency_lower_2sigma"))
 File_tr.Close()
+
+
+def div_except(a, b):
+    if b>0:
+        return float(a)/b
+    else:
+        return 1
 
 
 def btagging_efficiency_medium(pt):
@@ -524,14 +535,36 @@ for i in range(num1, num2):
         for j in range(len(fjUngroomedPt)):
             jettemp = ROOT.TLorentzVector()
             jettemp.SetPtEtaPhiM(fjUngroomedPt[j], fjUngroomedEta[j], fjUngroomedPhi[j], fjUngroomedMass[j])
+	    if (options.syst=="FJEC_Up"):
+                            correction_factor=1+(tree.FatjetAK08ungroomed_JEC_UP[j]-tree.FatjetAK08ungroomed_JEC_L1L2L3[j])
+                            jettemp*=correction_factor
+	    if (options.syst=="FJEC_Down"):
+                            correction_factor=1-(tree.FatjetAK08ungroomed_JEC_UP[j]-tree.FatjetAK08ungroomed_JEC_L1L2L3[j])
+                            jettemp*=correction_factor
+	    if (options.syst=="FJER_Up"):
+                            correction_factor=div_except(tree.FatjetAK08ungroomed_JER_UP_PT[j],tree.FatjetAK08ungroomed_pt[j])
+                            jettemp*=correction_factor
+	    if (options.syst=="FJER_Down"):
+                            pJERDown=2*tree.FatjetAK08ungroomed_pt[j]-tree.FatjetAK08ungroomed_JER_UP_PT[j]
+			    correction_factor=div_except((pJERDown),tree.FatjetAK08ungroomed_pt[j])
+			    jettemp*=correction_factor
+	
+	
 	    if jettemp.Pt() > 300. and abs(jettemp.Eta()) < 2.4: 	
                     jets.append(jettemp)
 		    if fjUngroomedTau1[j] > 0:
 			    jet_tau.append(fjUngroomedTau2[j]/fjUngroomedTau1[j])
 		    else:
 			    jet_tau.append(100)
+		    mpruned_syst=fjUngroomedPrunedMass[j]
+		    if (options.syst=="MJEC_Down"):
+                            sigma=tree.FatjetAK08ungroomed_JEC_L2L3_UP[j]-tree.FatjetAK08ungroomed_JEC_L2L3[j]
+                            mpruned_syst=tree.FatjetAK08ungroomed_mpruned[j]*(tree.FatjetAK08ungroomed_JEC_L2L3[j]-sigma)
+                    if (options.syst=="MJEC_Up"): 
+			mpruned_syst=tree.FatjetAK08ungroomed_mpruned[j]*tree.FatjetAK08ungroomed_JEC_L2L3_UP[j]
+
 		    jet_bbtag.append(fjUngroomedBbTag[j])	
-                    jet_pmass.append(fjUngroomedPrunedMass[j])
+                    jet_pmass.append(mpruned_syst)
                     jet_pmassunc.append(fjUngroomedPrunedMass_Unc[j])
                     jet_id.append(fjUngroomedJetID[j])
                     if options.isMC:
@@ -541,6 +574,10 @@ for i in range(num1, num2):
                         jet_JER.append(fjUngroomedJER[j])
                     jet_123.append(fjL1L2L3[j])
                     jet_23.append(fjL2L3[j])
+                        
+                        
+                            
+                        
 
 	if options.jets and len(jets) < 2: # two jets with pt > 30 and |eta| < 2.5
 		continue
@@ -940,6 +977,7 @@ for i in range(num1, num2):
 	#3b-tag category
 	#SF=[((1-SF1e1))/(1-e1)]*SF2*SF3*SF4
 	#e1 estimated in HH signal sample to be 
+	'''	
 	if (jet1s1csv[0] >0.460 and jet2s1csv[0] >0.460  and jet1s2csv[0] >0.460 and jet2s2csv[0] < 0.460 ) or (jet1s1csv[0] >0.460 and jet2s1csv[0] >0.460  and jet1s2csv[0] <0.460 and jet2s2csv[0] > 0.460 ) or (jet1s1csv[0] >0.460 and jet2s1csv[0] <0.460  and jet1s2csv[0] >0.460 and jet2s2csv[0] > 0.460 ) or (jet1s1csv[0] <0.460 and jet2s1csv[0] > 0.460  and jet1s2csv[0] >0.460 and jet2s2csv[0] > 0.460 ):
 	 if n1sj >1 and n2sj>1:
 	  if(jet1s1csv[0] >0.460) :
@@ -948,9 +986,6 @@ for i in range(num1, num2):
             SF3sjDown[0] *= sfsj1down
 	  else : 
 	    SF3sj[0] *= (1-sfsj1*btagging_efficiency_medium(jet1sj[0].Pt()))/(1-btagging_efficiency_medium(jet1sj[0].Pt()))
-	    if (1-sfsj1*btagging_efficiency_medium(jet1sj[0].Pt())) <0 :
-		print("%f  %f"%(sfsj1,btagging_efficiency_medium(jet1sj[0].Pt())))
-		print((1-sfsj1*btagging_efficiency_medium(jet1sj[0].Pt()))/(1-btagging_efficiency_medium(jet1sj[0].Pt()))) 
             SF3sjUp[0] *= (1-sfsj1up*btagging_efficiency_medium(jet1sj[0].Pt()))/(1-btagging_efficiency_medium(jet1sj[0].Pt()))
             SF3sjDown[0] *= (1-sfsj1down*btagging_efficiency_medium(jet1sj[0].Pt()))/(1-btagging_efficiency_medium(jet1sj[0].Pt()))
           if(jet1s2csv[0] >0.460) :
@@ -961,8 +996,6 @@ for i in range(num1, num2):
             SF3sj[0] *= (1-sfsj2*btagging_efficiency_medium(jet1sj[1].Pt()))/(1-btagging_efficiency_medium(jet1sj[1].Pt()))
             SF3sjUp[0] *= (1-sfsj2up*btagging_efficiency_medium(jet1sj[1].Pt()))/(1-btagging_efficiency_medium(jet1sj[1].Pt()))
             SF3sjDown[0] *= (1-sfsj2down*btagging_efficiency_medium(jet1sj[1].Pt()))/(1-btagging_efficiency_medium(jet1sj[1].Pt()))
-	    if (1-sfsj2*btagging_efficiency_medium(jet1sj[1].Pt())) <0 :
-                print("%f  %f"%(sfsj2,btagging_efficiency_medium(jet1sj[1].Pt())))
 
           if(jet2s1csv[0] >0.460) :
             SF3sj[0] *= sfsj3
@@ -984,7 +1017,7 @@ for i in range(num1, num2):
 	if SF3sj[0] <0. : SF3sj[0] = -SF3sj[0]
 	if SF3sjUp[0] <0. : SF3sjUp[0] = -SF3sjUp[0]
 	if SF3sjDown[0] <0. : SF3sjDown[0] = -SF3sjDown[0]	
-  
+  	'''
 	#filling the tree
         myTree.Fill()
 
