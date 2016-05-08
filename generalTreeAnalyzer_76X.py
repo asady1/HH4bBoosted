@@ -423,6 +423,9 @@ for i in range(num1, num2):
 	    print "processing events", count
 	
 	#variables we need from the heppy ntuple
+	fJetPt  = treeMine.Jet_pt
+        fJetEta  = treeMine.Jet_eta
+        fNJets = treeMine.nJet
         genPt = treeMine.GenJet_pt
         genEta = treeMine.GenJet_eta
         genPhi = treeMine.GenJet_phi
@@ -496,10 +499,10 @@ for i in range(num1, num2):
         triggerpasssj[0] = matchedsj
 
         #trigger weights
-        hT = 0
-        for j in range(len(fjUngroomedPt)): 
-            if abs(fjUngroomedEta[j]) < 3 and fjUngroomedPt[j] > 40:
-                hT = hT + fjUngroomedPt[j]
+	hT =0
+        for i in range(0,fNJets):
+                if abs(fJetEta[i])<3 and fJetPt[i] >40 :
+                        hT=hT+fJetPt[i]
 
         ht[0] = hT 
         trigWeight[0] = trigger_function(histo_efficiency, int(round(hT)))
